@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PitchIt — Hear It. Match It. Share It.</title>
+  <meta name="description" content="PitchIt is the viral sound-matching game. Listen to a sound, mimic it, and see how close you get. Daily challenges, leaderboards, and shareable moments." />
+  <meta property="og:title" content="PitchIt — Hear It. Match It. Share It." />
+  <meta property="og:description" content="The viral game where you match sounds and score. Available on iOS & Android." />
+  <meta property="og:type" content="website" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #09090f;
+      --bg2: #0f0f1a;
+      --surface: #14142a;
+      --surface2: #1c1c35;
+      --border: rgba(255,255,255,0.08);
+      --purple: #7c3aed;
+      --purple-light: #a78bfa;
+      --pink: #ec4899;
+      --cyan: #06b6d4;
+      --green: #10b981;
+      --text: #f0f0f8;
+      --muted: #8888aa;
+      --radius: 16px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* ── NAV ─────────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 32px;
+      background: rgba(9,9,15,0.7);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-size: 1.3rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, var(--purple-light), var(--pink));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .nav-links { display: flex; gap: 32px; }
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+
+    .nav-cta {
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      color: #fff !important;
+      padding: 10px 22px;
+      border-radius: 50px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      text-decoration: none;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .nav-cta:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    /* ── HERO ────────────────────────────────────── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-glow {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+    .hero-glow::before {
+      content: '';
+      position: absolute;
+      top: -20%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 900px;
+      height: 600px;
+      background: radial-gradient(ellipse, rgba(124,58,237,0.25) 0%, transparent 65%);
+      animation: pulse 4s ease-in-out infinite;
+    }
+    .hero-glow::after {
+      content: '';
+      position: absolute;
+      top: 30%;
+      left: 30%;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(ellipse, rgba(236,72,153,0.15) 0%, transparent 65%);
+      animation: pulse 6s ease-in-out infinite reverse;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: translateX(-50%) scale(1); }
+      50% { opacity: 0.7; transform: translateX(-50%) scale(1.1); }
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(124,58,237,0.15);
+      border: 1px solid rgba(124,58,237,0.35);
+      border-radius: 50px;
+      padding: 8px 16px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--purple-light);
+      margin-bottom: 28px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .badge-dot {
+      width: 6px; height: 6px;
+      background: var(--purple-light);
+      border-radius: 50%;
+      animation: blink 1.5s ease-in-out infinite;
+    }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    h1 {
+      font-size: clamp(3rem, 7vw, 6rem);
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -2px;
+      margin-bottom: 24px;
+      position: relative;
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #fff 0%, var(--purple-light) 40%, var(--pink) 70%, var(--cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+      color: var(--muted);
+      max-width: 560px;
+      margin: 0 auto 48px;
+      font-weight: 400;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 80px;
+    }
+
+    .btn-primary {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      color: #fff;
+      text-decoration: none;
+      padding: 16px 32px;
+      border-radius: 50px;
+      font-weight: 700;
+      font-size: 1rem;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 8px 32px rgba(124,58,237,0.4);
+    }
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 16px 40px rgba(124,58,237,0.5);
+    }
+
+    .btn-secondary {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
+      color: var(--text);
+      text-decoration: none;
+      padding: 16px 32px;
+      border-radius: 50px;
+      font-weight: 700;
+      font-size: 1rem;
+      border: 1px solid var(--border);
+      transition: transform 0.2s, background 0.2s;
+    }
+    .btn-secondary:hover {
+      transform: translateY(-3px);
+      background: var(--surface2);
+    }
+
+    /* ── WAVEFORM ────────────────────────────────── */
+    .waveform-container {
+      width: 100%;
+      max-width: 640px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .waveform {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      height: 80px;
+    }
+
+    .wave-bar {
+      width: 4px;
+      border-radius: 4px;
+      background: linear-gradient(to top, var(--purple), var(--pink));
+      animation: wave var(--d, 1s) ease-in-out infinite;
+      animation-delay: var(--delay, 0s);
+    }
+
+    @keyframes wave {
+      0%, 100% { height: 8px; opacity: 0.4; }
+      50% { height: var(--h, 40px); opacity: 1; }
+    }
+
+    /* ── SCORE DEMO ──────────────────────────────── */
+    .score-bubble {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: conic-gradient(var(--purple) 0deg, var(--pink) 266deg, var(--surface2) 266deg);
+      position: relative;
+      margin: 40px auto;
+      box-shadow: 0 0 60px rgba(124,58,237,0.4);
+      animation: scoreReveal 1s ease-out 0.5s both;
+    }
+
+    @keyframes scoreReveal {
+      from { transform: scale(0.5); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .score-inner {
+      width: 92px;
+      height: 92px;
+      border-radius: 50%;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .score-number {
+      font-size: 2rem;
+      font-weight: 900;
+      line-height: 1;
+      background: linear-gradient(135deg, var(--purple-light), var(--pink));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .score-label { font-size: 0.6rem; color: var(--muted); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+
+    /* ── HOW IT WORKS ────────────────────────────── */
+    section { padding: 100px 24px; }
+
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--purple-light);
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 16px;
+      line-height: 1.1;
+    }
+
+    .section-sub {
+      font-size: 1.1rem;
+      color: var(--muted);
+      max-width: 540px;
+      margin: 0 auto;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      max-width: 1100px;
+      margin: 64px auto 0;
+    }
+
+    .step-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 36px 28px;
+      text-align: left;
+      transition: transform 0.3s, border-color 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .step-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--purple), var(--pink));
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .step-card:hover { transform: translateY(-6px); border-color: rgba(124,58,237,0.4); }
+    .step-card:hover::before { opacity: 1; }
+
+    .step-icon {
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      margin-bottom: 20px;
+    }
+    .step-icon-1 { background: rgba(6,182,212,0.15); }
+    .step-icon-2 { background: rgba(236,72,153,0.15); }
+    .step-icon-3 { background: rgba(124,58,237,0.15); }
+    .step-icon-4 { background: rgba(16,185,129,0.15); }
+
+    .step-num {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .step-card h3 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .step-card p { color: var(--muted); font-size: 0.95rem; line-height: 1.6; }
+
+    /* ── FEATURES ────────────────────────────────── */
+    .features-section {
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2px;
+      max-width: 1100px;
+      margin: 64px auto 0;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .feature-item {
+      background: var(--surface);
+      padding: 36px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: background 0.2s;
+    }
+    .feature-item:hover { background: var(--surface2); }
+
+    .feature-emoji { font-size: 2rem; }
+
+    .feature-item h4 {
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+    .feature-item p { color: var(--muted); font-size: 0.9rem; line-height: 1.6; }
+
+    /* ── SCORING ─────────────────────────────────── */
+    .scoring-section { text-align: center; }
+
+    .outcome-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      max-width: 900px;
+      margin: 64px auto 0;
+    }
+
+    .outcome-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 36px 28px;
+      text-align: center;
+      transition: transform 0.3s, border-color 0.3s;
+    }
+    .outcome-card:hover { transform: translateY(-6px); }
+
+    .outcome-score {
+      font-size: 4rem;
+      font-weight: 900;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .outcome-tag {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 50px;
+      margin-bottom: 20px;
+    }
+
+    .outcome-card h4 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .outcome-card p {
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    .outcome-good .outcome-score { color: var(--green); }
+    .outcome-good { border-color: rgba(16,185,129,0.25); }
+    .outcome-good .outcome-tag { background: rgba(16,185,129,0.15); color: var(--green); }
+
+    .outcome-mid .outcome-score { color: var(--purple-light); }
+    .outcome-mid { border-color: rgba(124,58,237,0.25); }
+    .outcome-mid .outcome-tag { background: rgba(124,58,237,0.15); color: var(--purple-light); }
+
+    .outcome-bad .outcome-score { color: var(--pink); }
+    .outcome-bad { border-color: rgba(236,72,153,0.25); }
+    .outcome-bad .outcome-tag { background: rgba(236,72,153,0.15); color: var(--pink); }
+
+    @media (max-width: 700px) {
+      .outcome-cards { grid-template-columns: 1fr; }
+    }
+
+    /* ── DOWNLOAD ────────────────────────────────── */
+    .download-section {
+      text-align: center;
+      padding: 120px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .download-glow {
+      position: absolute;
+      bottom: -100px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 500px;
+      background: radial-gradient(ellipse, rgba(124,58,237,0.2) 0%, transparent 65%);
+      pointer-events: none;
+    }
+
+    .download-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 64px 48px;
+      max-width: 640px;
+      margin: 0 auto;
+      position: relative;
+      overflow: hidden;
+    }
+    .download-box::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 24px;
+      padding: 1px;
+      background: linear-gradient(135deg, var(--purple), var(--pink), transparent);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    .download-box h2 {
+      font-size: clamp(2rem, 4vw, 2.8rem);
+      font-weight: 900;
+      letter-spacing: -1px;
+      line-height: 1.1;
+      margin-bottom: 16px;
+    }
+
+    .download-box p {
+      color: var(--muted);
+      margin-bottom: 40px;
+      font-size: 1.05rem;
+    }
+
+    .store-buttons {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      opacity: 0.45;
+      pointer-events: none;
+    }
+
+    .store-badge {
+      display: block;
+      text-decoration: none;
+      transition: transform 0.2s, opacity 0.2s;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .store-badge:hover { transform: translateY(-3px); opacity: 0.9; }
+
+    .notify-form {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 32px;
+    }
+
+    .notify-input {
+      flex: 1;
+      min-width: 220px;
+      max-width: 300px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 18px;
+      font-size: 0.95rem;
+      color: var(--text);
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .notify-input::placeholder { color: var(--muted); }
+    .notify-input:focus { border-color: var(--purple); }
+
+    .notify-btn {
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 14px 24px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.2s;
+      white-space: nowrap;
+    }
+    .notify-btn:hover { opacity: 0.9; transform: translateY(-2px); }
+
+    .form-success {
+      margin-top: 16px;
+      font-size: 0.9rem;
+      color: var(--green);
+      font-weight: 600;
+    }
+
+    .store-soon {
+      margin-top: 12px;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    /* ── FOOTER ──────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .footer-logo {
+      font-size: 1.1rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--purple-light), var(--pink));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .footer-copy {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    /* ── UTILS ───────────────────────────────────── */
+    .text-center { text-align: center; }
+
+    .scroll-fade {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .scroll-fade.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 900px) {
+      .steps { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 640px) {
+      nav { padding: 16px 20px; }
+      .nav-links { display: none; }
+      .hero { padding: 100px 20px 60px; }
+      .hero-buttons { flex-direction: column; align-items: center; }
+      .btn-primary, .btn-secondary { width: 100%; justify-content: center; }
+      section { padding: 70px 20px; }
+      .steps { grid-template-columns: 1fr; }
+      .store-buttons { flex-direction: column; align-items: center; }
+      .store-btn { width: 100%; justify-content: center; }
+      .download-box { padding: 40px 28px; }
+      footer { justify-content: center; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <span class="nav-logo">PitchIt</span>
+    <div class="nav-links">
+      <a href="#how-it-works">How it works</a>
+      <a href="#features">Features</a>
+      <a href="#scoring">Your Score</a>
+    </div>
+    <a href="#download" class="nav-cta">Download</a>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-glow"></div>
+
+    <div class="badge scroll-fade">
+      <span class="badge-dot"></span>
+      Daily Challenges Live Soon
+    </div>
+
+    <h1 class="scroll-fade">
+      Hear it.<br>
+      <span class="gradient-text">Match it.</span><br>
+      Share it.
+    </h1>
+
+    <p class="hero-sub scroll-fade">
+      PitchIt is the viral sound-matching game. Listen to an animal, vehicle, or nature sound. Mimic it. Get scored 0 to 100 on how close you got.
+    </p>
+
+    <div class="hero-buttons scroll-fade">
+      <a href="#download" class="btn-primary">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+        App Store
+      </a>
+      <a href="#download" class="btn-secondary">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M3.18 23.76c.3.17.64.24.99.19l12.91-7.46-2.79-2.79-11.11 10.06zM.59 1.22C.22 1.6 0 2.16 0 2.88v18.24c0 .72.22 1.28.59 1.66l.09.08 10.21-10.21v-.24L.68 1.14l-.09.08zM20.33 10.37l-2.8-1.62-3.11 3.11 3.11 3.11 2.82-1.63c.8-.46.8-1.21-.02-1.97zM4.17.24L17.08 7.7l-2.79 2.79L4.17.24z"/></svg>
+        Google Play
+      </a>
+    </div>
+
+    <!-- Animated waveform -->
+    <div class="waveform-container scroll-fade">
+      <div class="waveform" id="waveform"></div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section id="how-it-works">
+    <div class="text-center">
+      <p class="section-label scroll-fade">The Game</p>
+      <h2 class="section-title scroll-fade">Four steps to glory<br>(or glorious failure)</h2>
+      <p class="section-sub scroll-fade">
+        Each day brings a new sound. You get three attempts to nail it, and your worst scores are often the funniest to share.
+      </p>
+    </div>
+
+    <div class="steps">
+      <div class="step-card scroll-fade">
+        <div class="step-icon step-icon-1">🔊</div>
+        <p class="step-num">Step 01</p>
+        <h3>Hear the sound</h3>
+        <p>Each day features a new challenge: a dog bark, a car engine, a thunderclap. Listen to the original as many times as you like.</p>
+      </div>
+      <div class="step-card scroll-fade">
+        <div class="step-icon step-icon-2">🎤</div>
+        <p class="step-num">Step 02</p>
+        <h3>Record your take</h3>
+        <p>Hit record and give it your best impression. You get three attempts per day. Use them wisely, or just go completely unhinged.</p>
+      </div>
+      <div class="step-card scroll-fade">
+        <div class="step-icon step-icon-3">📊</div>
+        <p class="step-num">Step 03</p>
+        <h3>Get your score</h3>
+        <p>Our algorithm compares your recording using pitch, timbre, and timing. Scores range from 0 to 100. A 74 means you're good. A 12 means you're comedy gold.</p>
+      </div>
+      <div class="step-card scroll-fade">
+        <div class="step-icon step-icon-4">🚀</div>
+        <p class="step-num">Step 04</p>
+        <h3>Share & climb</h3>
+        <p>Post your score to TikTok, stories, or anywhere. Challenge friends. Hit the weekly leaderboard. Low scores are comedy. Share those too.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section id="features" class="features-section">
+    <div class="text-center">
+      <p class="section-label scroll-fade">Features</p>
+      <h2 class="section-title scroll-fade">Something new,<br>every single day</h2>
+      <p class="section-sub scroll-fade">Fresh sounds, fair competition, and plenty of ways to prove (or embarrass) yourself.</p>
+    </div>
+
+    <div class="features-grid scroll-fade">
+      <div class="feature-item">
+        <div class="feature-emoji">🗓️</div>
+        <h4>Daily Challenges</h4>
+        <p>A fresh sound drops every day. Something new to try, something new to fail at.</p>
+      </div>
+      <div class="feature-item">
+        <div class="feature-emoji">🏆</div>
+        <h4>Leaderboards</h4>
+        <p>Compete weekly and all-time. See exactly where you rank and who you're chasing.</p>
+      </div>
+      <div class="feature-item">
+        <div class="feature-emoji">📤</div>
+        <h4>One-tap sharing</h4>
+        <p>Share any of your attempts, not just your best. Bad scores are often more fun to share anyway.</p>
+      </div>
+      <div class="feature-item">
+        <div class="feature-emoji">🐾</div>
+        <h4>Tons of sounds</h4>
+        <p>Animals, vehicles, nature, household objects. Enough variety that every day feels different.</p>
+      </div>
+      <div class="feature-item">
+        <div class="feature-emoji">🎯</div>
+        <h4>Multiple attempts</h4>
+        <p>You get three shots at each sound. Improve your score, or watch yourself get worse. Both are valid.</p>
+      </div>
+      <div class="feature-item">
+        <div class="feature-emoji">🔗</div>
+        <h4>Challenge a friend</h4>
+        <p>Send someone a link to your sound. When they tap it, they're in the game. No setup required.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCORING -->
+  <section id="scoring" class="scoring-section">
+    <div class="text-center">
+      <p class="section-label scroll-fade">Your Score</p>
+      <h2 class="section-title scroll-fade">Honest feedback,<br>every time</h2>
+      <p class="section-sub scroll-fade">
+        Your score reflects how close you really got. Pitch, rhythm, and texture all factor in. You can't charm it. You can only match it.
+      </p>
+    </div>
+
+    <div class="outcome-cards scroll-fade">
+      <div class="outcome-card outcome-good">
+        <div class="outcome-score">91</div>
+        <div class="outcome-tag">Eerily accurate</div>
+        <h4>Something clicked</h4>
+        <p>Your timing was dead-on. You captured the texture, the pitch, all of it. Brag about this one.</p>
+      </div>
+      <div class="outcome-card outcome-mid">
+        <div class="outcome-score">62</div>
+        <div class="outcome-tag">Solid effort</div>
+        <h4>You got the spirit</h4>
+        <p>The general vibe was there even if the details weren't perfect. A respectable score and you know it.</p>
+      </div>
+      <div class="outcome-card outcome-bad">
+        <div class="outcome-score">11</div>
+        <div class="outcome-tag">Pure comedy</div>
+        <h4>Nobody saw that coming</h4>
+        <p>Genuinely funny. And those scores almost always get the best reactions when you share them.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- DOWNLOAD -->
+  <section id="download" class="download-section">
+    <div class="download-glow"></div>
+    <div class="download-box scroll-fade">
+      <h2>Ready to sound<br><span class="gradient-text">completely ridiculous?</span></h2>
+      <p>Free to play. Coming soon to iOS and Android.</p>
+
+      <div class="store-buttons">
+        <!-- Apple App Store badge -->
+        <a href="#" class="store-badge" aria-label="Download on the App Store">
+          <svg xmlns="http://www.w3.org/2000/svg" width="162" height="54" viewBox="0 0 162 54">
+            <rect width="162" height="54" rx="8" fill="#000"/>
+            <!-- Apple logo (scaled to 60%, positioned to fit badge) -->
+            <g transform="translate(6,8) scale(0.6)">
+              <path fill="#fff" d="M31.5 13.9c1.6-2 2.7-4.7 2.4-7.4-2.3.1-5.2 1.6-6.8 3.6-1.5 1.7-2.7 4.5-2.4 7.1 2.6.2 5.2-1.3 6.8-3.3z"/>
+              <path fill="#fff" d="M37.3 18.8c-3.8-.2-7 2.2-8.8 2.2-1.8 0-4.6-2.1-7.6-2-3.9.1-7.5 2.3-9.5 5.8-4.1 7-1 17.4 2.9 23.1 1.9 2.8 4.2 5.9 7.3 5.8 2.9-.1 4-1.9 7.5-1.9 3.5 0 4.5 1.9 7.5 1.9 3.1-.1 5.2-2.9 7.1-5.7 2.2-3.2 3.1-6.4 3.2-6.5-.1 0-6.2-2.4-6.2-9.4 0-5.9 4.8-8.7 5-8.8-2.8-3.9-7-4.3-8.4-4.5z"/>
+            </g>
+            <!-- "Download on the" -->
+            <text x="44" y="22" font-family="-apple-system, Helvetica Neue, Arial, sans-serif" font-size="10" fill="#fff" opacity="0.85" letter-spacing="0.2">Download on the</text>
+            <!-- "App Store" -->
+            <text x="44" y="40" font-family="-apple-system, Helvetica Neue, Arial, sans-serif" font-size="20" font-weight="600" fill="#fff" letter-spacing="-0.3">App Store</text>
+          </svg>
+        </a>
+
+        <!-- Google Play badge -->
+        <a href="#" class="store-badge" aria-label="Get it on Google Play">
+          <svg xmlns="http://www.w3.org/2000/svg" width="182" height="54" viewBox="0 0 182 54">
+            <rect width="182" height="54" rx="8" fill="#000"/>
+            <!-- Google Play icon (4-color triangle) -->
+            <path fill="#4285F4" d="M13 9.5L30.5 27 13 44.5V9.5z"/>
+            <path fill="#EA4335" d="M37 20.5l-6.5 6.5 6.5 6.5 7.5-4.3c2.1-1.2 2.1-3.2 0-4.4L37 20.5z"/>
+            <path fill="#FBBC04" d="M13 44.5l17.5-17.5L37 33.5 15.2 45.7c-.9.5-1.7.4-2.2-.2z"/>
+            <path fill="#34A853" d="M13 9.5c.5-.6 1.3-.7 2.2-.2L37 20.5l-6.5 6.5L13 9.5z"/>
+            <!-- "Get it on" -->
+            <text x="57" y="22" font-family="Arial, Roboto, sans-serif" font-size="10" fill="#fff" opacity="0.85" letter-spacing="0.2">Get it on</text>
+            <!-- "Google Play" -->
+            <text x="57" y="40" font-family="Arial, Roboto, sans-serif" font-size="20" font-weight="500" fill="#fff" letter-spacing="-0.3">Google Play</text>
+          </svg>
+        </a>
+      </div>
+
+      <p class="store-soon">Coming soon to both stores.</p>
+
+      <form class="notify-form" id="notifyForm" action="https://formspree.io/f/xqegovag" method="POST">
+        <input class="notify-input" type="email" name="email" placeholder="your@email.com" required />
+        <button class="notify-btn" type="submit">Notify me at launch</button>
+      </form>
+      <p class="form-success" id="formSuccess" style="display:none">You're on the list. We'll reach out when we launch.</p>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <span class="footer-logo">PitchIt</span>
+    <span class="footer-copy">&copy; 2026 PitchIt. Hear it. Match it. Share it.</span>
+  </footer>
+
+  <script>
+    // Waveform bars
+    const waveform = document.getElementById('waveform');
+    const barCount = 60;
+    const heights = [8,14,22,30,40,52,60,55,45,35,28,20,15,10,8,12,18,28,40,55,62,58,50,42,34,26,20,15,10,8,12,20,30,44,58,65,60,50,40,30,22,16,12,8,10,16,26,38,50,60,58,50,40,30,20,14,10,8,10,14];
+    for (let i = 0; i < barCount; i++) {
+      const bar = document.createElement('div');
+      bar.className = 'wave-bar';
+      const h = heights[i] || 20;
+      bar.style.setProperty('--h', h + 'px');
+      bar.style.setProperty('--d', (0.8 + Math.random() * 0.8).toFixed(2) + 's');
+      bar.style.setProperty('--delay', (Math.random() * 0.8).toFixed(2) + 's');
+      waveform.appendChild(bar);
+    }
+
+    // Scroll fade-in
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          // Trigger score bar fill when visible
+          if (e.target.classList.contains('score-bars')) {
+            e.target.querySelectorAll('.score-bar-fill').forEach(b => {
+              b.style.animationPlayState = 'running';
+            });
+          }
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.scroll-fade').forEach(el => observer.observe(el));
+
+    // Email signup form
+    const form = document.getElementById('notifyForm');
+    const success = document.getElementById('formSuccess');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = form.querySelector('button');
+      btn.textContent = 'Sending...';
+      btn.disabled = true;
+      try {
+        const res = await fetch(form.action, {
+          method: 'POST',
+          body: new FormData(form),
+          headers: { Accept: 'application/json' },
+        });
+        if (res.ok) {
+          form.style.display = 'none';
+          success.style.display = 'block';
+        } else {
+          btn.textContent = 'Try again';
+          btn.disabled = false;
+        }
+      } catch {
+        btn.textContent = 'Try again';
+        btn.disabled = false;
+      }
+    });
+
+  </script>
+</body>
+</html>
